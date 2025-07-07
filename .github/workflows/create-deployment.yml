@@ -1,0 +1,32 @@
+name: Create Date-Based Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for creating releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set version with current date-time
+        id: set_version
+        run: echo "VERSION=$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+
+      - name: Zip amazon-eks-diag directory
+        run: |
+          cd amazon-eks-diag
+          zip -r ../amazon-eks-diag.zip ./*
+          cd ..
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          files: amazon-eks-diag.zip
